@@ -18,7 +18,10 @@ router.post('/', authenticate, (req, res) => {
     const sql = 'INSERT INTO presensi (tanggal, jam, tingkat, kelasId, mapelId, siswaId, status, foto, userId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
 
     for (const e of entries) {
-      db.prepare(sql).run(tanggal, jam, tingkat, kelasId, mapelId, e.siswaId, e.status, e.foto || null, req.user.id)
+      const stmt = db.prepareRaw(sql)
+      stmt.bind([tanggal, jam, tingkat, kelasId, mapelId, e.siswaId, e.status, e.foto || null, req.user.id])
+      stmt.step()
+      stmt.free()
     }
     persistDb()
 
@@ -29,7 +32,7 @@ router.post('/', authenticate, (req, res) => {
     console.log('Presensi POST success:', entries.length, 'entries')
     res.status(201).json({ status: 'success', data: { count: entries.length } })
   } catch (error) {
-    console.error('Presensi POST error:', error)
+    console.error('Presensi POST error:', error.message, error.stack)
     res.status(500).json({ status: 'error', message: error.message })
   }
 })
