@@ -7,6 +7,7 @@ const router = Router()
 router.post('/', authenticate, (req, res) => {
   try {
     const { tingkat, kelasId, mapelId, entries } = req.body
+    console.log('Presensi POST incoming:', { tingkat, kelasId, mapelId, entryCount: entries?.length })
     if (!tingkat || !kelasId || !mapelId || !entries?.length) {
       return res.status(400).json({ status: 'error', message: 'Data tidak lengkap' })
     }
@@ -17,7 +18,7 @@ router.post('/', authenticate, (req, res) => {
     const sql = 'INSERT INTO presensi (tanggal, jam, tingkat, kelasId, mapelId, siswaId, status, foto, userId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
 
     for (const e of entries) {
-      db.run(sql, [tanggal, jam, tingkat, kelasId, mapelId, e.siswaId, e.status, e.foto || null, req.user.id])
+      db.prepare(sql).run(tanggal, jam, tingkat, kelasId, mapelId, e.siswaId, e.status, e.foto || null, req.user.id)
     }
     persistDb()
 
@@ -25,6 +26,7 @@ router.post('/', authenticate, (req, res) => {
       req.app.get('io').emit('presensi:baru', { kelasId, mapelId, tingkat, tanggal, jam, userId: req.user.id })
     }
 
+    console.log('Presensi POST success:', entries.length, 'entries')
     res.status(201).json({ status: 'success', data: { count: entries.length } })
   } catch (error) {
     console.error('Presensi POST error:', error)
