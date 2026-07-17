@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/socket.io",
+      "destination": "https://backendabsensi-production.up.railway.app/socket.io"
+    },
+    {
+      "source": "/socket.io/:path*",
+      "destination": "https://backendabsensi-production.up.railway.app/socket.io/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://backendabsensi-production.up.railway.app/api/:path*"
+    }
+  ]
+}

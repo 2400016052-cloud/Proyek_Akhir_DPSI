@@ -1,6 +1,7 @@
 import { io as socketIO } from 'socket.io-client'
 
-const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
+const isProduction = import.meta.env.PROD
+const SOCKET_URL = isProduction ? '' : (import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000')
 
 let socket = null
 
