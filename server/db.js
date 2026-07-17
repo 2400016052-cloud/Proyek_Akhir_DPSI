@@ -64,9 +64,20 @@ function wrap(db) {
   return {
     prepare: (sql) => stmt(sql),
     prepareRaw: (sql) => db.prepare(sql),
-    run: (sql, params) => { db.run(sql, params); queueSave() },
+    run: (sql, params) => {
+      const s = db.prepare(sql)
+      if (params) s.bind(params)
+      s.step()
+      s.free()
+      queueSave()
+    },
     exec: (sql) => { db.exec(sql); queueSave() },
-    runRaw: (sql, params) => db.run(sql, params),
+    runRaw: (sql, params) => {
+      const s = db.prepare(sql)
+      if (params) s.bind(params)
+      s.step()
+      s.free()
+    },
     execRaw: (sql) => db.exec(sql),
     transaction: (fn) => (...args) => {
       db.exec('BEGIN TRANSACTION')
