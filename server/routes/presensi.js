@@ -16,29 +16,18 @@ router.post('/', authenticate, (req, res) => {
     const jam = now.toTimeString().split(' ')[0]
     const sql = 'INSERT INTO presensi (tanggal, jam, tingkat, kelasId, mapelId, siswaId, status, foto, userId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
 
-    db.execRaw('BEGIN TRANSACTION')
-    try {
-      for (const e of entries) {
-        db.runRaw(sql, [tanggal, jam, tingkat, kelasId, mapelId, e.siswaId, e.status, e.foto || null, req.user.id])
-      }
-      db.execRaw('COMMIT')
-      persistDb()
-    } catch (e) {
-      db.execRaw('ROLLBACK')
-      throw e
+    for (const e of entries) {
+      db.run(sql, [tanggal, jam, tingkat, kelasId, mapelId, e.siswaId, e.status, e.foto || null, req.user.id])
     }
-
-    const records = entries.map(e => ({
-      tanggal, jam, tingkat, kelasId, mapelId, siswaId: e.siswaId, status: e.status, foto: e.foto || null, userId: req.user.id
-    }))
+    persistDb()
 
     if (req.app.get('io')) {
-      req.app.get('io').emit('presensi:baru', { kelasId, mapelId, tingkat, records, userId: req.user.id })
+      req.app.get('io').emit('presensi:baru', { kelasId, mapelId, tingkat, tanggal, jam, userId: req.user.id })
     }
 
     res.status(201).json({ status: 'success', data: { count: entries.length } })
   } catch (error) {
-    console.log(error)
+    console.error('Presensi POST error:', error)
     res.status(500).json({ status: 'error', message: error.message })
   }
 })
